@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажёр «Мысль — Эмоция — Действие»</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --text: #111827;
+      --muted: #6B7280;
+      --border: #E5E7EB;
+      --purple: #7C3AED;
+      --purple-l: #EDE9FE;
+      --coral: #F97316;
+      --coral-l: #FFEDD5;
+      --green: #10B981;
+      --green-l: #D1FAE5;
+      --red: #EF4444;
+      --red-l: #FEE2E2;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+      --r: 12px;
+      --r-sm: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827; --surface: #1F2937; --text: #F9FAFB;
+        --muted: #9CA3AF; --border: #374151;
+        --purple-l: #2D1B69; --coral-l: #431407; --green-l: #064E3B; --red-l: #450a0a;
+        --shadow: 0 1px 4px rgba(0,0,0,.3);
+      }
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+    .app { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
+
+    /* Header */
+    .app-header { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .app-logo { width: 40px; height: 40px; background: var(--purple); border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; flex-shrink: 0; }
+    .app-name { font-size: 17px; font-weight: 700; }
+    .app-tagline { font-size: 13px; color: var(--muted); }
+
+    /* Progress */
+    #progress-wrap { margin-bottom: 24px; }
+    .dots { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all .3s; }
+    .dot.active { width: 24px; border-radius: 4px; background: var(--purple); }
+    .dot.done { background: var(--green); }
+    .step-label { text-align: center; font-size: 13px; color: var(--muted); }
+
+    /* Screens */
+    .screen { display: none; animation: fadeUp .3s ease; }
+    .screen.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Card */
+    .card { background: var(--surface); border-radius: var(--r); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+    .card-title i { font-size: 16px; }
+
+    /* Headings */
+    .screen-head { margin-bottom: 22px; }
+    .screen-head h1 { font-size: 24px; font-weight: 800; line-height: 1.25; margin-bottom: 6px; }
+    .screen-head p { color: var(--muted); font-size: 15px; }
+
+    /* Form */
+    .fg { margin-bottom: 18px; }
+    .fg:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 7px; }
+    textarea, input[type=text], input[type=password] {
+      width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      background: var(--bg); color: var(--text); font-size: 15px; font-family: inherit;
+      resize: vertical; outline: none; transition: border-color .2s;
+    }
+    textarea:focus, input:focus { border-color: var(--purple); }
+    textarea::placeholder, input::placeholder { color: var(--muted); }
+    .hint { font-size: 13px; color: var(--muted); margin-top: 5px; font-style: italic; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: var(--r-sm); font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; font-family: inherit; }
+    .btn-primary { background: var(--purple); color: #fff; width: 100%; padding: 14px; font-size: 16px; }
+    .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-ai { background: var(--purple-l); color: var(--purple); font-size: 14px; padding: 10px 15px; }
+    .btn-ai:hover { opacity: .85; }
+    .btn-ai:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); font-size: 15px; }
+    .btn-secondary:hover { border-color: var(--purple); }
+    .btn-green { background: var(--green-l); color: var(--green); width: 100%; }
+    .btn-green:hover { opacity: .85; }
+    .nav { display: flex; gap: 10px; margin-top: 22px; }
+    .nav .btn-secondary { flex: 1; }
+    .nav .btn-primary { flex: 2; }
+
+    /* Spinner */
+    .spin { display: inline-block; width: 15px; height: 15px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: rot .6s linear infinite; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* Emotion grid */
+    .emotion-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
+    .emo-btn { padding: 10px 6px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: var(--bg); color: var(--text); font-size: 13px; cursor: pointer; text-align: center; transition: all .2s; font-family: inherit; }
+    .emo-btn:hover { border-color: var(--coral); background: var(--coral-l); }
+    .emo-btn.sel { border-color: var(--coral); background: var(--coral-l); color: var(--coral); font-weight: 700; }
+
+    /* Sliders */
+    .slider-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .slider-big { font-size: 28px; font-weight: 800; }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .badge-low { background: var(--green-l); color: var(--green); }
+    .badge-med { background: var(--coral-l); color: var(--coral); }
+    .badge-high { background: var(--red-l); color: var(--red); }
+    input[type=range] { width: 100%; height: 6px; -webkit-appearance: none; appearance: none; border-radius: 3px; background: var(--border); outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--coral); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+    input[type=range].purple-thumb::-webkit-slider-thumb { background: var(--purple); }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+    /* AI result */
+    .ai-box { margin-top: 12px; padding: 15px; background: var(--purple-l); border-radius: var(--r-sm); border-left: 3px solid var(--purple); display: none; }
+    .ai-box.show { display: block; }
+    .ai-title { font-weight: 700; color: var(--purple); margin-bottom: 5px; }
+    .ai-desc { font-size: 14px; margin-bottom: 7px; }
+    .ai-tip { font-size: 13px; color: var(--muted); font-style: italic; }
+
+    /* AI options */
+    .ai-opts { display: none; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .ai-opts.show { display: flex; }
+    .ai-opt { padding: 11px 15px; background: var(--green-l); border: 1.5px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 14px; color: var(--text); text-align: left; transition: all .2s; font-family: inherit; }
+    .ai-opt:hover { border-color: var(--green); transform: translateX(4px); }
+
+    /* Error */
+    .err { padding: 11px 13px; background: var(--red-l); color: var(--red); border-radius: var(--r-sm); font-size: 14px; margin-top: 10px; display: none; }
+    .err.show { display: block; }
+
+    /* Schema */
+    .schema { display: flex; align-items: center; background: var(--purple-l); border-radius: var(--r); padding: 20px 16px; margin: 20px 0; }
+    .schema-step { flex: 1; text-align: center; }
+    .schema-icon { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 22px; color: #fff; }
+    .schema-icon.p { background: var(--purple); }
+    .schema-icon.c { background: var(--coral); }
+    .schema-icon.g { background: var(--green); }
+    .schema-lbl { font-size: 13px; font-weight: 600; }
+    .schema-arr { color: var(--muted); font-size: 18px; padding: 0 4px; padding-bottom: 14px; }
+
+    /* Welcome */
+    .hero { text-align: center; padding: 28px 0 20px; }
+    .hero h1 { font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+    .hero p { font-size: 15px; color: var(--muted); max-width: 460px; margin: 0 auto; }
+    .time-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: var(--purple-l); color: var(--purple); border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+    .disclaimer { font-size: 12px; color: var(--muted); text-align: center; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); margin-top: 14px; }
+    .api-toggle { background: none; border: none; color: var(--purple); font-size: 13px; cursor: pointer; text-decoration: underline; margin-bottom: 10px; font-family: inherit; }
+    .api-section { display: none; margin-bottom: 14px; }
+    .api-section.show { display: block; }
+
+    /* Results */
+    .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .state-box { padding: 16px; border-radius: var(--r); }
+    .state-box.before { background: var(--coral-l); border: 1px solid var(--coral); }
+    .state-box.after { background: var(--green-l); border: 1px solid var(--green); }
+    .state-box-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .state-box.before .state-box-title { color: var(--coral); }
+    .state-box.after .state-box-title { color: var(--green); }
+    .si { margin-bottom: 10px; }
+    .si-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+    .si-val { font-size: 14px; font-weight: 500; word-break: break-word; }
+
+    /* Belief chart */
+    .belief-chart-wrap { margin-bottom: 16px; }
+    .belief-bars { display: flex; gap: 20px; height: 90px; align-items: flex-end; margin-bottom: 6px; }
+    .bar-group { flex: 1; display: flex; flex-direction: column; align-items: stretch; height: 100%; justify-content: flex-end; }
+    .bar-inner { position: relative; width: 100%; }
+    .bar { border-radius: 4px 4px 0 0; transition: height 1s ease; min-height: 4px; }
+    .bar.b { background: var(--coral); }
+    .bar.a { background: var(--green); }
+    .bar-val { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 700; }
+    .bar-lbl { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
+    .shift-pill { text-align: center; padding: 11px; border-radius: var(--r-sm); font-size: 14px; font-weight: 600; }
+    .shift-pos { background: var(--green-l); color: var(--green); }
+    .shift-neu { background: var(--purple-l); color: var(--purple); }
+    .shift-neg { background: var(--coral-l); color: var(--coral); }
+
+    /* Recommendations */
+    .recs { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .rec { display: flex; align-items: flex-start; gap: 12px; padding: 13px; background: var(--bg); border-radius: var(--r-sm); border: 1px solid var(--border); }
+    .rec-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--green-l); color: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+    .rec-text { font-size: 14px; line-height: 1.5; }
+
+    /* Quote */
+    .quote { padding: 20px; background: var(--purple-l); border-radius: var(--r); text-align: center; margin-bottom: 14px; }
+    .quote-text { font-size: 16px; font-style: italic; margin-bottom: 7px; }
+    .quote-author { font-size: 13px; color: var(--muted); }
+
+    /* Action buttons */
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); padding: 12px 20px; border-radius: var(--r-sm); font-size: 14px; font-weight: 500; transition: transform .3s ease; z-index: 999; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      .emotion-grid { grid-template-columns: repeat(2, 1fr); }
+      .ba-grid { grid-template-columns: 1fr; }
+      .schema { gap: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-logo"><i class="ti ti-brain"></i></div>
+    <div>
+      <div class="app-name">МЭД-тренажёр</div>
+      <div class="app-tagline">Мысль → Эмоция → Действие</div>
+    </div>
+  </header>
+
+  <!-- Progress -->
+  <div id="progress-wrap" style="display:none">
+    <div class="dots">
+      <div class="dot" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+    </div>
+    <div class="step-label" id="step-lbl"></div>
+  </div>
+
+  <!-- ── Экран 0: Приветствие ── -->
+  <div class="screen active" id="s0">
+    <div class="hero">
+      <div class="time-pill"><i class="ti ti-clock"></i> 5–7 минут</div>
+      <h1>Разберись с собой прямо сейчас</h1>
+      <p>Пошаговый тренажёр, который помогает понять, какая мысль управляет вашим состоянием — и что с этим делать</p>
+    </div>
+
+    <div class="schema">
+      <div class="schema-step">
+        <div class="schema-icon p"><i class="ti ti-mood-sad"></i></div>
+        <div class="schema-lbl">Состояние</div>
+      </div>
+      <div class="schema-arr"><i class="ti ti-arrow-right"></i></div>
+      <div class="schema-step">
+        <div class="schema-icon c"><i class="ti ti-message-2"></i></div>
+        <div class="schema-lbl">Мысль</div>
+      </div>
+      <div class="schema-arr"><i class="ti ti-arrow-right"></i></div>
+      <div class="schema-step">
+        <div class="schema-icon g"><i class="ti ti-star"></i></div>
+        <div class="schema-lbl">Новый взгляд</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="fg">
+        <label for="situation">Опишите ситуацию, которая вас беспокоит</label>
+        <textarea id="situation" rows="4" placeholder="Например: завтра важная встреча с руководителем, и я чувствую, что не готов. Боюсь, что задаст вопросы, на которые я не смогу ответить..." aria-label="Описание ситуации"></textarea>
+      </div>
+
+      <button class="api-toggle" onclick="toggleApi()" aria-expanded="false" id="api-toggle-btn">⚙ Настроить ИИ-модули (Anthropic API ключ)</button>
+      <div class="api-section" id="api-section" aria-hidden="true">
+        <div class="fg">
+          <label for="api-key">Anthropic API ключ</label>
+          <input type="password" id="api-key" placeholder="sk-ant-..." aria-label="API ключ Anthropic">
+          <div class="hint">Ключ хранится только в вашем браузере и никуда не передаётся</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="start()">
+        <i class="ti ti-arrow-right"></i> Начать разбор
+      </button>
+    </div>
+
+    <div class="disclaimer">
+      Этот инструмент предназначен для саморефлексии и не заменяет психологическую или медицинскую помощь. Если вы в кризисной ситуации — обратитесь к специалисту.
+    </div>
+  </div>
+
+  <!-- ── Экран 1: Состояние ── -->
+  <div class="screen" id="s1">
+    <div class="screen-head">
+      <h1>Что вы сейчас чувствуете?</h1>
+      <p>Нет правильного ответа — просто честно отметьте своё состояние</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-mood-heart"></i> Эмоция</div>
+      <div class="emotion-grid" role="group" aria-label="Выбор эмоции">
+        <button class="emo-btn" onclick="selEmo(this,'Тревога')" aria-pressed="false">😰 Тревога</button>
+        <button class="emo-btn" onclick="selEmo(this,'Злость')" aria-pressed="false">😠 Злость</button>
+        <button class="emo-btn" onclick="selEmo(this,'Страх')" aria-pressed="false">😨 Страх</button>
+        <button class="emo-btn" onclick="selEmo(this,'Грусть')" aria-pressed="false">😢 Грусть</button>
+        <button class="emo-btn" onclick="selEmo(this,'Стыд')" aria-pressed="false">😳 Стыд</button>
+        <button class="emo-btn" onclick="selEmo(this,'Растерянность')" aria-pressed="false">😵 Растерянность</button>
+        <button class="emo-btn" onclick="selEmo(this,'Апатия')" aria-pressed="false">😑 Апатия</button>
+        <button class="emo-btn" onclick="selEmo(this,'Обида')" aria-pressed="false">🙁 Обида</button>
+      </div>
+      <div class="fg">
+        <input type="text" id="custom-emo" placeholder="Или введите свою эмоцию..." oninput="customEmo(this.value)" aria-label="Другая эмоция">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-gauge"></i> Интенсивность</div>
+      <div class="slider-row">
+        <span class="slider-big" id="int-val">5</span>
+        <span class="badge badge-med" id="int-badge">Средняя</span>
+      </div>
+      <input type="range" min="1" max="10" value="5" id="int-slider" oninput="updateInt(this.value)" aria-label="Интенсивность от 1 до 10">
+      <div class="slider-labels"><span>1 — Лёгкое</span><span>10 — Невыносимое</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-body-scan"></i> Телесные ощущения</div>
+      <div class="fg">
+        <textarea id="body" rows="3" placeholder="Например: сжатие в груди, напряжение в плечах, учащённое дыхание..." aria-label="Телесные ощущения"></textarea>
+        <div class="hint">Тело честнее слов — что происходит прямо сейчас?</div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-secondary" onclick="goTo(0)"><i class="ti ti-arrow-left"></i> Назад</button>
+      <button class="btn btn-primary" onclick="goTo(2)">Далее <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── Экран 2: Автоматическая мысль ── -->
+  <div class="screen" id="s2">
+    <div class="screen-head">
+      <h1>Какая мысль крутится в голове?</h1>
+      <p>Автоматическая мысль — первое, что приходит в момент стресса</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-message-2"></i> Автоматическая мысль</div>
+      <div class="fg">
+        <textarea id="auto-thought" rows="3" placeholder="Например: «Меня оценят негативно», «Я не справлюсь», «Все видят, что я некомпетентен»..." aria-label="Автоматическая мысль"></textarea>
+      </div>
+      <button class="btn btn-ai" id="dist-btn" onclick="detectDistortion()">
+        <i class="ti ti-robot"></i> Определить когнитивное искажение
+      </button>
+      <div class="ai-box" id="dist-box" role="status" aria-live="polite">
+        <div class="ai-title" id="dist-name"></div>
+        <div class="ai-desc" id="dist-desc"></div>
+        <div class="ai-tip" id="dist-tip"></div>
+      </div>
+      <div class="err" id="dist-err">Не удалось получить ответ. Продолжите без ИИ-подсказки.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-trending-down"></i> Влияние на действия</div>
+      <div class="fg">
+        <label for="impact">Как эта мысль влияет на ваши действия?</label>
+        <textarea id="impact" rows="3" placeholder="Например: избегаю разговора, откладываю подготовку, раздражаюсь на окружающих..." aria-label="Влияние мысли на действия"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-percentage"></i> Насколько вы верите в эту мысль?</div>
+      <div class="slider-row">
+        <span class="slider-big" id="belief-b-val" style="color:var(--coral)">50%</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" class="purple-thumb" id="belief-b" oninput="updBeliefB(this.value)" aria-label="Вера в мысль от 0 до 100 процентов">
+      <div class="slider-labels"><span>0% — Совсем не верю</span><span>100% — Абсолютно уверен</span></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-secondary" onclick="goTo(1)"><i class="ti ti-arrow-left"></i> Назад</button>
+      <button class="btn btn-primary" onclick="goTo(3)">Далее <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── Экран 3: Замена мысли ── -->
+  <div class="screen" id="s3">
+    <div class="screen-head">
+      <h1>Сформулируйте новую мысль</h1>
+      <p>Не позитивную — реалистичную и более точную</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-bulb"></i> Новая, более точная мысль</div>
+      <div class="fg">
+        <textarea id="new-thought" rows="3" placeholder="Например: «Я готовился к этой встрече и знаю основные ответы» или «Я могу не знать всего, но у меня есть опыт»..." aria-label="Новая мысль"></textarea>
+      </div>
+      <button class="btn btn-ai" id="alt-btn" onclick="getAlts()">
+        <i class="ti ti-wand"></i> Получить варианты от ИИ
+      </button>
+      <div class="ai-opts" id="ai-opts" role="list" aria-live="polite"></div>
+      <div class="err" id="alt-err">Не удалось получить варианты. Продолжите самостоятельно.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-sparkles"></i> Что меняется?</div>
+      <div class="fg">
+        <label for="state-change">Что меняется в состоянии с новой мыслью?</label>
+        <textarea id="state-change" rows="2" placeholder="Например: чувствую чуть больше уверенности, меньше тревоги..." aria-label="Изменения в состоянии"></textarea>
+      </div>
+      <div class="fg">
+        <label for="new-action">Какое первое действие вы можете сделать?</label>
+        <textarea id="new-action" rows="2" placeholder="Например: подготовить 3 ключевых тезиса к встрече..." aria-label="Новое действие"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-percentage"></i> Вера в старую мысль теперь</div>
+      <div class="slider-row">
+        <span class="slider-big" id="belief-a-val" style="color:var(--green)">50%</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" class="purple-thumb" id="belief-a" oninput="updBeliefA(this.value)" aria-label="Вера в старую мысль после разбора">
+      <div class="slider-labels"><span>0% — Совсем не верю</span><span>100% — По-прежнему уверен</span></div>
+      <div class="hint" style="margin-top:8px">Нормально, если цифра снизилась немного — это уже прогресс</div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-secondary" onclick="goTo(2)"><i class="ti ti-arrow-left"></i> Назад</button>
+      <button class="btn btn-primary" onclick="showResults()">Показать результат <i class="ti ti-chart-bar"></i></button>
+    </div>
+  </div>
+
+  <!-- ── Экран 4: Результат ── -->
+  <div class="screen" id="s4">
+    <div class="screen-head">
+      <h1>Ваш результат</h1>
+      <p>Вы проделали важную внутреннюю работу</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-arrows-exchange"></i> До и После</div>
+      <div class="ba-grid">
+        <div class="state-box before">
+          <div class="state-box-title">— Было</div>
+          <div class="si"><div class="si-lbl">Эмоция</div><div class="si-val" id="r-emo">—</div></div>
+          <div class="si"><div class="si-lbl">Мысль</div><div class="si-val" id="r-thought">—</div></div>
+          <div class="si"><div class="si-lbl">Поведение</div><div class="si-val" id="r-impact">—</div></div>
+        </div>
+        <div class="state-box after">
+          <div class="state-box-title">— Стало</div>
+          <div class="si"><div class="si-lbl">Новая мысль</div><div class="si-val" id="r-new-thought">—</div></div>
+          <div class="si"><div class="si-lbl">Состояние</div><div class="si-val" id="r-state">—</div></div>
+          <div class="si"><div class="si-lbl">Действие</div><div class="si-val" id="r-action">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar"></i> Сдвиг веры в старую мысль</div>
+      <div class="belief-chart-wrap">
+        <div class="belief-bars">
+          <div class="bar-group">
+            <div class="bar-inner">
+              <div class="bar b" id="bar-b"><span class="bar-val" id="bar-b-v">50%</span></div>
+            </div>
+            <div class="bar-lbl">До разбора</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar-inner">
+              <div class="bar a" id="bar-a"><span class="bar-val" id="bar-a-v">50%</span></div>
+            </div>
+            <div class="bar-lbl">После разбора</div>
+          </div>
+        </div>
+        <div class="shift-pill" id="shift-pill">Сдвиг: 0%</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list-check"></i> Рекомендации на 24 часа</div>
+      <ul class="recs" id="recs" aria-label="Рекомендации"></ul>
+    </div>
+
+    <div class="quote" id="quote-block">
+      <div class="quote-text" id="quote-text"></div>
+      <div class="quote-author" id="quote-author"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-green" onclick="copyResult()">
+        <i class="ti ti-copy"></i> Скопировать результат
+      </button>
+      <button class="btn btn-secondary" style="width:100%" onclick="restart()">
+        <i class="ti ti-refresh"></i> Новая ситуация
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+
+<script>
+const S = {
+  situation: '', emotion: '', intensity: 5, body: '',
+  autoThought: '', impact: '', beliefBefore: 50,
+  newThought: '', stateChange: '', newAction: '', beliefAfter: 50,
+  apiKey: '',
+};
+
+const STEP_LABELS = ['Состояние', 'Автоматическая мысль', 'Замена мысли', 'Результат'];
+let cur = 0;
+
+function goTo(n) {
+  document.getElementById('s' + cur).classList.remove('active');
+  cur = n;
+  document.getElementById('s' + cur).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress();
+}
+
+function updateProgress() {
+  const wrap = document.getElementById('progress-wrap');
+  if (cur === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d' + i);
+    d.className = 'dot';
+    if (i + 1 < cur) d.classList.add('done');
+    else if (i + 1 === cur) d.classList.add('active');
+  }
+  const idx = cur - 1;
+  document.getElementById('step-lbl').textContent =
+    cur <= 3 ? `Шаг ${cur} из 3 — ${STEP_LABELS[idx]}` : 'Результат';
+}
+
+function start() {
+  S.situation = document.getElementById('situation').value;
+  S.apiKey = document.getElementById('api-key').value.trim();
+  if (S.apiKey) sessionStorage.setItem('ak', S.apiKey);
+  goTo(1);
+}
+
+function toggleApi() {
+  const sec = document.getElementById('api-section');
+  const btn = document.getElementById('api-toggle-btn');
+  const open = sec.classList.toggle('show');
+  btn.setAttribute('aria-expanded', open);
+  sec.setAttribute('aria-hidden', !open);
+  if (open) {
+    const saved = sessionStorage.getItem('ak');
+    if (saved) document.getElementById('api-key').value = saved;
+  }
+}
+
+function selEmo(btn, emo) {
+  document.querySelectorAll('.emo-btn').forEach(b => { b.classList.remove('sel'); b.setAttribute('aria-pressed', 'false'); });
+  btn.classList.add('sel');
+  btn.setAttribute('aria-pressed', 'true');
+  S.emotion = emo;
+  document.getElementById('custom-emo').value = '';
+}
+
+function customEmo(v) {
+  S.emotion = v;
+  document.querySelectorAll('.emo-btn').forEach(b => { b.classList.remove('sel'); b.setAttribute('aria-pressed', 'false'); });
+}
+
+function updateInt(v) {
+  S.intensity = +v;
+  document.getElementById('int-val').textContent = v;
+  const badge = document.getElementById('int-badge');
+  if (+v <= 3) { badge.textContent = 'Низкая'; badge.className = 'badge badge-low'; }
+  else if (+v <= 6) { badge.textContent = 'Средняя'; badge.className = 'badge badge-med'; }
+  else { badge.textContent = 'Высокая'; badge.className = 'badge badge-high'; }
+}
+
+function updBeliefB(v) { S.beliefBefore = +v; document.getElementById('belief-b-val').textContent = v + '%'; }
+function updBeliefA(v) { S.beliefAfter = +v; document.getElementById('belief-a-val').textContent = v + '%'; }
+
+function getKey() { return S.apiKey || sessionStorage.getItem('ak') || ''; }
+
+async function callClaude(system, user) {
+  const key = getKey();
+  if (!key) throw new Error('no-key');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 512,
+      system,
+      messages: [{ role: 'user', content: user }],
+    }),
+  });
+  if (!res.ok) throw new Error('api-' + res.status);
+  const d = await res.json();
+  return d.content[0].text;
+}
+
+async function detectDistortion() {
+  const thought = document.getElementById('auto-thought').value.trim();
+  if (!thought) { toast('Сначала введите автоматическую мысль'); return; }
+  const btn = document.getElementById('dist-btn');
+  const box = document.getElementById('dist-box');
+  const err = document.getElementById('dist-err');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Анализирую...';
+  box.classList.remove('show');
+  err.classList.remove('show');
+  try {
+    const sys = 'Ты эксперт по когнитивно-поведенческой терапии. Определяй когнитивные искажения в автоматических мыслях. Отвечай ТОЛЬКО валидным JSON (без markdown): {"distortion":"название","description":"1 предложение о сути искажения","tip":"конкретный совет как с ним работать"}';
+    const text = await callClaude(sys, `Автоматическая мысль: "${thought}"`);
+    const j = JSON.parse(text);
+    document.getElementById('dist-name').textContent = j.distortion;
+    document.getElementById('dist-desc').textContent = j.description;
+    document.getElementById('dist-tip').textContent = '💡 ' + j.tip;
+    box.classList.add('show');
+  } catch (e) {
+    err.textContent = e.message === 'no-key'
+      ? 'Введите API ключ в настройках (⚙ на первом экране).'
+      : 'Не удалось получить ответ. Продолжите без ИИ-подсказки.';
+    err.classList.add('show');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-robot"></i> Определить когнитивное искажение';
+}
+
+async function getAlts() {
+  const btn = document.getElementById('alt-btn');
+  const opts = document.getElementById('ai-opts');
+  const err = document.getElementById('alt-err');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Генерирую варианты...';
+  opts.classList.remove('show');
+  err.classList.remove('show');
+  try {
+    const sys = 'Ты коуч по когнитивно-поведенческой терапии. Генерируй реалистичные альтернативные мысли — точные, взвешенные, без пустого оптимизма. До 12 слов каждая. Отвечай ТОЛЬКО валидным JSON (без markdown): {"options":["мысль 1","мысль 2","мысль 3"]}';
+    const user = `Ситуация: ${S.situation || document.getElementById('situation').value}\nАвтоматическая мысль: ${document.getElementById('auto-thought').value}`;
+    const text = await callClaude(sys, user);
+    const j = JSON.parse(text);
+    opts.innerHTML = '<div class="hint" style="margin-bottom:8px">Нажмите на вариант, чтобы использовать его:</div>';
+    j.options.forEach(o => {
+      const b = document.createElement('button');
+      b.className = 'ai-opt';
+      b.setAttribute('role', 'listitem');
+      b.textContent = o;
+      b.onclick = () => { document.getElementById('new-thought').value = o; S.newThought = o; };
+      opts.appendChild(b);
+    });
+    opts.classList.add('show');
+  } catch (e) {
+    err.textContent = e.message === 'no-key'
+      ? 'Введите API ключ в настройках (⚙ на первом экране).'
+      : 'Не удалось получить варианты. Продолжите самостоятельно.';
+    err.classList.add('show');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-wand"></i> Получить варианты от ИИ';
+}
+
+function collect() {
+  S.situation = document.getElementById('situation').value;
+  S.body = document.getElementById('body').value;
+  S.autoThought = document.getElementById('auto-thought').value;
+  S.impact = document.getElementById('impact').value;
+  S.newThought = document.getElementById('new-thought').value;
+  S.stateChange = document.getElementById('state-change').value;
+  S.newAction = document.getElementById('new-action').value;
+}
+
+function makeRecs() {
+  const items = [];
+  const { intensity, emotion, newAction } = S;
+  const emo = emotion.toLowerCase();
+
+  if (intensity >= 7) {
+    items.push({ icon: 'ti-wind', t: 'Сделайте 3 медленных вдоха — это снизит физиологическую реакцию и даст голове немного пространства' });
+  } else if (intensity >= 4) {
+    items.push({ icon: 'ti-walk', t: 'Короткая прогулка 10–15 минут поможет переработать эмоциональное напряжение и закрепить новый взгляд' });
+  } else {
+    items.push({ icon: 'ti-notebook', t: 'Запишите новую мысль и оставьте её на виду — например, на стикере или заметке в телефоне' });
+  }
+
+  if (emo.includes('тревог') || emo.includes('страх')) {
+    items.push({ icon: 'ti-list', t: 'Составьте список того, что реально в ваших силах в этой ситуации — это возвращает ощущение контроля' });
+  } else if (emo.includes('злост') || emo.includes('обид')) {
+    items.push({ icon: 'ti-clock', t: 'Прежде чем реагировать, дайте себе 24 часа — злость плохой советник для важных решений' });
+  } else if (emo.includes('апати') || emo.includes('грус')) {
+    items.push({ icon: 'ti-heart', t: 'Сделайте одно маленькое приятное дело для себя — не ради результата, просто потому что можно' });
+  } else if (emo.includes('стыд') || emo.includes('растер')) {
+    items.push({ icon: 'ti-users', t: 'Поговорите с кем-то, кому доверяете — проговаривание вслух часто меняет восприятие ситуации' });
+  } else {
+    items.push({ icon: 'ti-target', t: 'Определите одно конкретное действие из новой мысли и назначьте ему время в своём расписании сегодня' });
+  }
+
+  if (newAction) {
+    items.push({ icon: 'ti-check', t: `Первый шаг: ${newAction}. Сделайте его сегодня — даже небольшое движение важно` });
+  } else {
+    items.push({ icon: 'ti-target', t: 'Сформулируйте один конкретный шаг, который можно сделать прямо сегодня' });
+  }
+
+  return items;
+}
+
+const QUOTES = [
+  { t: 'Между стимулом и реакцией есть пространство. В этом пространстве — наша сила и свобода.', a: 'Виктор Франкл' },
+  { t: 'Ты не можешь остановить волны, но можешь научиться серфингу.', a: 'Джон Кабат-Зинн' },
+  { t: 'Мысли — это не факты, даже когда они кажутся правдой.', a: 'Когнитивно-поведенческая терапия' },
+];
+
+function showResults() {
+  collect();
+
+  // Before/After
+  document.getElementById('r-emo').textContent = (S.emotion || '—') + ` (${S.intensity}/10)`;
+  document.getElementById('r-thought').textContent = S.autoThought || '—';
+  document.getElementById('r-impact').textContent = S.impact || '—';
+  document.getElementById('r-new-thought').textContent = S.newThought || '—';
+  document.getElementById('r-state').textContent = S.stateChange || '—';
+  document.getElementById('r-action').textContent = S.newAction || '—';
+
+  // Bars
+  const bb = S.beliefBefore, ba = S.beliefAfter;
+  document.getElementById('bar-b').style.height = bb + '%';
+  document.getElementById('bar-a').style.height = ba + '%';
+  document.getElementById('bar-b-v').textContent = bb + '%';
+  document.getElementById('bar-a-v').textContent = ba + '%';
+
+  const shift = bb - ba;
+  const pill = document.getElementById('shift-pill');
+  if (shift > 0) {
+    pill.textContent = `Сдвиг: −${shift}% — вы ослабили власть этой мысли`;
+    pill.className = 'shift-pill shift-pos';
+  } else if (shift < 0) {
+    pill.textContent = `Вера выросла на ${Math.abs(shift)}% — повод вернуться к шагу 2`;
+    pill.className = 'shift-pill shift-neg';
+  } else {
+    pill.textContent = 'Вера не изменилась — это нормально, работа продолжается';
+    pill.className = 'shift-pill shift-neu';
+  }
+
+  // Recs
+  const recs = makeRecs();
+  document.getElementById('recs').innerHTML = recs.map(r =>
+    `<li class="rec"><div class="rec-icon"><i class="ti ${r.icon}"></i></div><div class="rec-text">${r.t}</div></li>`
+  ).join('');
+
+  // Quote
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  document.getElementById('quote-text').textContent = `"${q.t}"`;
+  document.getElementById('quote-author').textContent = `— ${q.a}`;
+
+  goTo(4);
+}
+
+function copyResult() {
+  const shift = S.beliefBefore - S.beliefAfter;
+  const sign = shift >= 0 ? '-' : '+';
+  const text =
+`=== Разбор внутреннего состояния ===
+
+СИТУАЦИЯ: ${S.situation || '—'}
+
+— БЫЛО —
+Эмоция: ${S.emotion || '—'} (интенсивность: ${S.intensity}/10)
+Мысль: ${S.autoThought || '—'}
+Действие: ${S.impact || '—'}
+Вера в мысль: ${S.beliefBefore}%
+
+— СТАЛО —
+Новая мысль: ${S.newThought || '—'}
+Новое состояние: ${S.stateChange || '—'}
+Новое действие: ${S.newAction || '—'}
+Вера в старую мысль: ${S.beliefAfter}%
+
+Сдвиг: ${sign}${Math.abs(shift)}%`;
+
+  navigator.clipboard.writeText(text)
+    .then(() => toast('Результат скопирован'))
+    .catch(() => toast('Не удалось скопировать'));
+}
+
+function restart() {
+  Object.assign(S, { situation:'', emotion:'', intensity:5, body:'', autoThought:'', impact:'', beliefBefore:50, newThought:'', stateChange:'', newAction:'', beliefAfter:50 });
+  ['situation','body','auto-thought','impact','new-thought','state-change','new-action','custom-emo'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.querySelectorAll('.emo-btn').forEach(b => { b.classList.remove('sel'); b.setAttribute('aria-pressed','false'); });
+  document.getElementById('int-slider').value = 5; updateInt(5);
+  document.getElementById('belief-b').value = 50; updBeliefB(50);
+  document.getElementById('belief-a').value = 50; updBeliefA(50);
+  document.getElementById('dist-box').classList.remove('show');
+  document.getElementById('ai-opts').classList.remove('show');
+  document.getElementById('dist-err').classList.remove('show');
+  document.getElementById('alt-err').classList.remove('show');
+  goTo(0);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Restore saved API key
+const savedKey = sessionStorage.getItem('ak');
+if (savedKey) S.apiKey = savedKey;
+</script>
+</body>
+</html>
